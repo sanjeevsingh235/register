@@ -22,6 +22,7 @@ import com.example.springex.util.ResponseHandler;
 @RestController
 public class UserController {
 
+	
 	@Autowired
 	private UserRepository userRepository;
 
@@ -72,7 +73,7 @@ public class UserController {
 	}
 
 	@RequestMapping(value = "/confirm", method = RequestMethod.POST) 
-	public ResponseEntity<Object> confirmUserAccount(@RequestParam("token") String confirmationToken,Employee emp1) {
+	public ResponseEntity<Object> confirmUserAccount(@RequestParam("token") String confirmationToken) {
 
 		ConfirmationToken token = confirmToken.findByConfirmationToken(confirmationToken);
 		
@@ -88,7 +89,13 @@ public class UserController {
 			return ResponseHandler.generateResponse(HttpStatus.OK, false, "This link invalid", null);
 
 		}
+		
+		
+		
+		
 
 	}
+	
+	
 
 }

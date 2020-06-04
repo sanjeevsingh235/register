@@ -3,6 +3,9 @@ package com.example.springex.dto;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
+import javax.persistence.Transient;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class Employee {
@@ -13,6 +16,25 @@ public class Employee {
 	private int id;
 	private String mobile;
 	private boolean isEnabled;
+	   @JsonIgnore
+	private String password;
+
+    public String getPassword() {
+		return password;
+	}
+	public void setPassword(String password) {
+		this.password = password;
+	}
+	public String getPasswordConfirm() {
+		return passwordConfirm;
+	}
+	public void setPasswordConfirm(String passwordConfirm) {
+		this.passwordConfirm = passwordConfirm;
+	}
+
+	@Transient
+    private String passwordConfirm;
+	
 	  public Employee() {
 	        super();
 	        this.isEnabled=false;
