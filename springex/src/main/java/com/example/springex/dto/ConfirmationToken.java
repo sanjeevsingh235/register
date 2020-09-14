@@ -52,13 +52,7 @@ public class ConfirmationToken {
 		this.createdDate = createdDate;
 	}
 
-	public Employee getEmp() {
-		return emp;
-	}
-
-	public void setEmp(Employee emp) {
-		this.emp = emp;
-	}
+	
 
 	@Column(name="confirmation_token")
     private String confirmationToken;
@@ -66,12 +60,20 @@ public class ConfirmationToken {
     @Temporal(TemporalType.TIMESTAMP)
     private Date createdDate;
 
-    @OneToOne(targetEntity = Employee.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = User.class, fetch = FetchType.LAZY)
     @JoinColumn(nullable = false, name = "user_id")
-    private Employee emp;
+    private User user=new User();
 
-    public ConfirmationToken(Employee emp) {
-        this.emp = emp;
+    public User getUser() {
+		return user;
+	}
+
+	public void setUser(User user) {
+		this.user = user;
+	}
+
+	public ConfirmationToken(User user) {
+        this.user = user;
         createdDate = new Date();
         confirmationToken = UUID.randomUUID().toString();
     }

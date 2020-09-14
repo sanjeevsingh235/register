@@ -1,9 +1,13 @@
 package com.example.springex.controller;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,18 +17,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.springex.dto.ConfirmationToken;
-import com.example.springex.dto.Employee;
+import com.example.springex.dto.User;
 import com.example.springex.mail.EmailSenderService;
 import com.example.springex.repository.ConfirmationTokenRepository;
 import com.example.springex.repository.UserRepository;
+import com.example.springex.service.UserServiceImpl;
 import com.example.springex.util.ResponseHandler;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 @RestController
 public class UserController {
 
-	
+	private static final Logger logger = LogManager.getLogger(UserController.class);
+
 	@Autowired
 	private UserRepository userRepository;
+
+	@Autowired
+	private UserServiceImpl userServiceImpl;
 
 	@Autowired
 
@@ -34,11 +46,11 @@ public class UserController {
 	private EmailSenderService email;
 
 	@PostMapping("/reg")
-	public ResponseEntity<Object> register(@RequestBody Employee emp)
+	public ResponseEntity<Object> register(@RequestBody User emp)
 
 	{
 
-		Employee em1 = userRepository.findByEmail(emp.getEmail());
+		User em1 = userRepository.findByEmail(emp.getEmail());
 		if (em1 != null) {
 
 			return ResponseHandler.generateResponse(HttpStatus.OK, false, "This email already exists!", emp.getEmail());
@@ -51,7 +63,6 @@ public class UserController {
 					emp.getEmail());
 
 		}
-
 		userRepository.save(emp);
 		ConfirmationToken confirmationToken = new ConfirmationToken(emp);
 
@@ -72,30 +83,97 @@ public class UserController {
 
 	}
 
-	@RequestMapping(value = "/confirm", method = RequestMethod.POST) 
+	@RequestMapping(value = "/confirm", method = RequestMethod.POST)
 	public ResponseEntity<Object> confirmUserAccount(@RequestParam("token") String confirmationToken) {
 
 		ConfirmationToken token = confirmToken.findByConfirmationToken(confirmationToken);
-		
-		
-	
-		if (token!= null) {
-			Employee emp = userRepository.findByEmail(token.getEmp().getEmail());
 
-			emp.setEnabled(true);
-			userRepository.save(emp);
+		if (token != null) {
+			User user = userRepository.findByEmail(token.getUser().getEmail());
+
+			user.setEnabled(true);
+			userRepository.save(user);
+
+			if (user.isEnabled() == true) {
+				return ResponseHandler.generateResponse(HttpStatus.OK, false, "Account  already verified", user);
+			}
+
 			return ResponseHandler.generateResponse(HttpStatus.OK, false, "Account verified", null);
 		} else {
 			return ResponseHandler.generateResponse(HttpStatus.OK, false, "This link invalid", null);
 
 		}
-		
-		
-		
-		
 
 	}
-	
-	
+
+	@GetMapping("/findAll")
+	List<User> fIndAll() {
+		return userRepository.findAll();
+	}
+
+	@RequestMapping(value = "/FindByName/{name}.*", method = RequestMethod.GET)
+	public ResponseEntity<Object> fIndByName(@RequestBody @PathVariable("name") String name) {
+
+		try {
+			User data = userServiceImpl.getEmployeeByName(name);
+			if (data.getName() == null) {
+
+			}
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "User Profile find Successfully", data);
+
+		} catch (Exception e) {
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "UserName Not Exit", null);
+		}
+
+	}
+
+	@DeleteMapping(value = "/user/{userid}")
+	public ResponseEntity<Object> DeleteApp(@RequestBody @PathVariable("userid") int userid) {
+
+		try {
+
+			User employee = userServiceImpl.getEmployeeById(userid);
+			userServiceImpl.deleteUserById(userid);
+			if (employee == null) {
+
+			}
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "User data Delete Successfully", employee);
+		}
+
+		catch (Exception e) {
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "User id not found", null);
+		}
+
+	}
+
+	@RequestMapping(value = "/profile/{email}", method = RequestMethod.GET)
+	public ResponseEntity<Object> findByEmail(@RequestBody @PathVariable("email") String email) {
+
+		try {
+			User data = userServiceImpl.findByEmail(email);
+			if (data.getEmail() == null) {
+
+			}
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "User Profile Get", data);
+
+		} catch (Exception e) {
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "Email id Not Exit", null);
+		}
+
+	}
+
+	@RequestMapping(value = "/UserUpdate/{userid}", method = RequestMethod.PUT)
+	public ResponseEntity<Object> UpdateUserProfile(@RequestBody User user, int userid) {
+		try {
+			User data = userServiceImpl.getEmployeeById(userid);
+			userRepository.save(user);
+
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "Profile Update Successfull", data);
+
+		} catch (Exception e) {
+			return ResponseHandler.generateResponse(HttpStatus.OK, false, "Data not found", null);
+		}
+
+	}
 
 }
